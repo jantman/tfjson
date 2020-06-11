@@ -77,6 +77,10 @@ The JSON representation produced by `tfjson` looks like:
 
 This library is compatible up to Terraform v0.11.
 
+## tagdiff.py
+
+This is a Python script (I needed it quick, and my Python is much better than my Go) that shows diff output much like ``terraform plan``, but shows a logical key-based diff for tags on ASGs and other resources that display tags indexed numerically instead of by tag key. It operates on the output of ``tfjson``.
+
 ## License
 
 This project is made available under the [MIT License](http://opensource.org/licenses/MIT).
