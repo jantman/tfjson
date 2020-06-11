@@ -48,16 +48,30 @@ func main() {
 
 type output map[string]interface{}
 
-func tfjson(planfile string) (string, error) {
-	f, err := os.Open(planfile)
+func tfjson_string(planfile string) (string, error) {
+	res, err := tfjson(planfile)
 	if err != nil {
 		return "", err
+	}
+
+	j, err := json.MarshalIndent(res, "", "    ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(j), nil
+}
+
+func tfjson(planfile string) (output, error) {
+	f, err := os.Open(planfile)
+	if err != nil {
+		return nil, err
 	}
 	defer f.Close()
 
 	plan, err := terraform.ReadPlan(f)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	diff := output{}
@@ -74,12 +88,7 @@ func tfjson(planfile string) (string, error) {
 	result["diff"] = diff
 	result["state"] = state
 
-	j, err := json.MarshalIndent(result, "", "    ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(j), nil
+	return result, nil
 }
 
 func insert(out output, path []string, key string, value interface{}) {

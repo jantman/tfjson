@@ -79,7 +79,7 @@ func Test(t *testing.T) {
 	mustRun(t, "terraform", "init")
 	mustRun(t, "terraform", "plan", "-out=terraform.tfplan")
 
-	j, err := tfjson("terraform.tfplan")
+	j, err := tfjson_string("terraform.tfplan")
 	if err != nil {
 		t.Fatal(err)
 	}
