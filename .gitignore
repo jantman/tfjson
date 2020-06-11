@@ -1,2 +1,5 @@
 *.iml
 *.ipr
+test.tfplan
+test.json
+tfjson

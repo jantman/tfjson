@@ -7,8 +7,13 @@ version of [Terraform PR #3170](https://github.com/hashicorp/terraform/pull/3170
 ## Installation
 
 ```
-$ go get github.com/palantir/tfjson
+$ git clone https://github.com/jantman/tfjson.git
+$ cd tfjson
+$ unset GOPATH
+$ go build
 ```
+
+Either run ``./tfjson``, or copy it somewhere useful (e.g. ``cp tfjson ~/bin/``).
 
 ## Usage
 

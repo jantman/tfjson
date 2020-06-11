@@ -64,7 +64,16 @@ func tfjson(planfile string) (string, error) {
 		convertModuleDiff(diff, v)
 	}
 
-	j, err := json.MarshalIndent(diff, "", "    ")
+	state := output{}
+	for _, v := range plan.State.Modules {
+		convertModuleState(state, v)
+	}
+
+	result := output{}
+	result["diff"] = diff
+	result["state"] = state
+
+	j, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
 		return "", err
 	}
@@ -101,5 +110,17 @@ func convertInstanceDiff(out output, path []string, diff *terraform.InstanceDiff
 	insert(out, path, "destroy_tainted", diff.DestroyTainted)
 	for k, v := range diff.Attributes {
 		insert(out, path, k, v.New)
+	}
+}
+
+func convertModuleState(out output, state *terraform.ModuleState) {
+	for k, v := range state.Resources {
+		convertInstanceState(out, append(state.Path, k), v)
+	}
+}
+
+func convertInstanceState(out output, path []string, state *terraform.ResourceState) {
+	for k, v := range state.Primary.Attributes {
+		insert(out, path, k, v)
 	}
 }
