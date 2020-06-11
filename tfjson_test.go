@@ -23,95 +23,63 @@ SOFTWARE.
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 )
 
-const mainTF = `
-provider "aws" {
-  region = "us-east-1"
-}
-
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-}
-
-module "inner" {
-  source = "./inner"
-}
-`
-
-const innerTF = `
-resource "aws_vpc" "inner" {
-  cidr_block = "10.0.0.0/8"
-}
-`
-
 const expected = `{
-    "aws_vpc.main": {
-        "cidr_block": "10.0.0.0/16",
-        "default_network_acl_id": "",
-        "default_route_table_id": "",
-        "default_security_group_id": "",
-        "destroy": false,
-        "destroy_tainted": false,
-        "dhcp_options_id": "",
-        "enable_classiclink": "",
-        "enable_dns_hostnames": "",
-        "enable_dns_support": "",
-        "id": "",
-        "instance_tenancy": "",
-        "main_route_table_id": ""
-    },
-    "destroy": false,
-    "inner": {
-        "aws_vpc.inner": {
-            "cidr_block": "10.0.0.0/8",
-            "default_network_acl_id": "",
-            "default_route_table_id": "",
-            "default_security_group_id": "",
-            "destroy": false,
-            "destroy_tainted": false,
-            "dhcp_options_id": "",
-            "enable_classiclink": "",
-            "enable_dns_hostnames": "",
-            "enable_dns_support": "",
-            "id": "",
-            "instance_tenancy": "",
-            "main_route_table_id": ""
+    "diff": {
+        "": {
+            "destroy": false
         },
-        "destroy": false
+        "nestedModule": {
+            "destroy": false
+        },
+        "nestedModule.null_resource.nested": {
+            "destroy": true,
+            "destroy_tainted": false,
+            "id": "",
+            "triggers.%": "3",
+            "triggers.nested_bar": "barCHANGED",
+            "triggers.nested_baz": "baz",
+            "triggers.nested_foo": "foo"
+        },
+        "null_resource.foo": {
+            "destroy": true,
+            "destroy_tainted": false,
+            "id": "",
+            "triggers.%": "3",
+            "triggers.bar": "bar",
+            "triggers.baz": "",
+            "triggers.blarg": "blarg",
+            "triggers.foo": "fooCHANGED"
+        }
+    },
+    "state": {
+        "nestedModule.null_resource.nested": {
+            "id": "1574642143301947708",
+            "triggers.%": "3",
+            "triggers.nested_bar": "bar",
+            "triggers.nested_baz": "baz",
+            "triggers.nested_foo": "foo"
+        },
+        "null_resource.foo": {
+            "id": "1678235666534884518",
+            "triggers.%": "3",
+            "triggers.bar": "bar",
+            "triggers.baz": "baz",
+            "triggers.foo": "foo"
+        }
     }
 }`
 
 func Test(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(dir)
+	os.Chdir("example/")
+	mustRun(t, "terraform", "init")
+	mustRun(t, "terraform", "plan", "-out=terraform.tfplan")
 
-	mainPath := filepath.Join(dir, "main.tf")
-	if err := ioutil.WriteFile(mainPath, []byte(mainTF), 0644); err != nil {
-		t.Fatal(err)
-	}
-	innerDir := filepath.Join(dir, "inner")
-	if err := os.Mkdir(innerDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	innerPath := filepath.Join(innerDir, "main.tf")
-	if err := ioutil.WriteFile(innerPath, []byte(innerTF), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	planPath := filepath.Join(dir, "terraform.tfplan")
-	mustRun(t, "terraform", "get", dir)
-	mustRun(t, "terraform", "plan", "-out="+planPath, dir)
-
-	j, err := tfjson(planPath)
+	j, err := tfjson("terraform.tfplan")
 	if err != nil {
 		t.Fatal(err)
 	}
