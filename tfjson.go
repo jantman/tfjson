@@ -37,7 +37,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	j, err := tfjson(os.Args[1])
+	j, err := tfjson_string(os.Args[1])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
